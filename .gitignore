@@ -1,9 +1,3 @@
-# local .terraform dir
 .terraform/*
-
-# lock file
 .terraform.*
-
-# tf state files
-*.tfstate
-*.tfstate.*
+terraform.*
