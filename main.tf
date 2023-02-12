@@ -1,35 +1,39 @@
-resource "aws_vpc" "myapp-vpc" {
-  cidr_block = var.vpc_cidr_block
+module "redis" {
+  source = "umotif-public/elasticache-redis/aws"
+  version = "~> 3.0.0"
+  name_prefix = "terraform-elasticache"
+  num_cache_clusters    = 1
+  node_type            = var.node_type
+  engine_version           = "6.x"
+  port                     = 6379
+  maintenance_window       = "mon:03:00-mon:04:00"
+  snapshot_window          = "04:00-06:00"
+  snapshot_retention_limit = 7
+
+  automatic_failover_enabled = true
+  at_rest_encryption_enabled = true
+  transit_encryption_enabled = false
+  apply_immediately = true
+  family            = "redis6.x"
+  description       = "creating elasticache redis using terraform"
+
+  subnet_ids = var.subnet_ids
+  vpc_id = var.vpc_id
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+
   tags = {
-    Name = "${var.env_prefix}-vpc"
+    Project = "terraform"
   }
+
 }
 
-module "myapp-subnet" {
-  source                 = "./modules/subnet"
-  subnet_cidr_block      = var.subnet_cidr_block
-  avail_zone             = var.avail_zone
-  env_prefix             = var.env_prefix
-  my_ip                  = var.my_ip
-  vpc_id                 = aws_vpc.myapp-vpc.id
-  default_route_table_id = aws_vpc.myapp-vpc.default_route_table_id
-}
 
-module "myapp-security-group" {
-  source     = "./modules/security_group"
-  env_prefix = var.env_prefix
-  my_ip      = var.my_ip
-  vpc_id     = aws_vpc.myapp-vpc.id
-}
 
-module "myapp-server-1" {
-  source                    = "./modules/webserver"
-  avail_zone                = var.avail_zone
-  env_prefix                = var.env_prefix
-  instance_type             = "t2.micro"
-  public_key_location       = "var.public_key_location"
-  vpc_id                    = aws_vpc.myapp-vpc.id
-  subnet_id                 = module.myapp-subnet.subnet.id
-  default_security_group_id = module.myapp-security-group.security_group.id
-  key_name                  = var.key_name
-}
+
+
+
+
+
+
+
